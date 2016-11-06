@@ -2,24 +2,28 @@ Strict
 
 Import "renderimageinterface.bmx"
 
-Private
-Global _d3ddev:IDirect3DDevice9
-Public
-
 Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 	Field _surface:IDirect3DSurface9
-	
+	Field _persistpixmap:TPixmap
+
 	Method Delete()
-		If _surface _surface.Release_
-		If _texture _texture.Release_
+		ReleaseNow()
+	EndMethod
+	
+	Method ReleaseNow()
+		If _surface
+			_surface.Release_
+			_surface = Null
+		EndIf
+		If _texture
+			_texture.Release_
+			_texture = Null
+		EndIf
 	EndMethod
 	
 	Method CreateRenderTarget:TD3D9RenderImageFrame( d3ddev:IDirect3DDevice9, width,height )
-		d3dDev.CreateTexture(width,height,1,D3DUSAGE_RENDERTARGET,D3DFMT_A8R8G8B8,D3DPOOL_DEFAULT,_texture,Null)
-		
-		If _texture
-			_texture.GetSurfaceLevel 0, _surface
-		EndIf
+		d3ddev.CreateTexture(width,height,1,D3DUSAGE_RENDERTARGET,D3DFMT_A8R8G8B8,D3DPOOL_DEFAULT,_texture,Null)
+		If _texture _texture.GetSurfaceLevel 0, _surface
 		
 		_magfilter = D3DTFG_LINEAR
 		_minfilter = D3DTFG_LINEAR
@@ -27,14 +31,79 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 
 		_uscale = 1.0 / width
 		_vscale = 1.0 / height
-		
+
 		Return Self
+	EndMethod
+
+	Method OnDeviceLost(d3ddev:IDirect3DDevice9, width:Int, height:Int)
+		_persistpixmap = CreatePixmap(width, height, PF_RGBA)
+
+		' use a staging surface to get the texture contents
+		Local stage:IDirect3DSurface9
+		d3ddev.CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
+
+		If d3ddev.GetRenderTargetData(_surface, stage) < 0 Throw "TD3D9RenderImageFrame:OnDeviceLost:GetRenderTargetData failed"
+
+		' copy the pixel data across
+		Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
+		If stage.LockRect(lockedrect, Null, 0) < 0 Throw "TD3D9RenderImageFrame:OnDeviceLost:LockRect failed"
+
+		For Local y:Int = 0 Until _persistpixmap.height
+			Local srcptr:Byte Ptr = lockedrect.pBits + y * lockedrect.Pitch
+			Local dstptr:Byte Ptr = _persistpixmap.pixels + y * _persistpixmap.pitch
+			MemCopy dstptr, srcptr, _persistpixmap.width * 4
+		Next
+
+		stage.UnlockRect()
+
+		' cleanup
+		stage.release_
+
+		ReleaseNow()
+	EndMethod
+
+	Method OnDeviceReset(d3ddev:IDirect3DDevice9)
+		Local width:Int = _persistpixmap.width
+		Local height:Int = _persistpixmap.height
+
+		d3ddev.CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, _texture, Null)
+		If _texture _texture.GetSurfaceLevel(0, _surface)
+
+		' use a staging surface to copy the pixmap into
+		Local stage:IDirect3DSurface9
+		d3ddev.CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
+
+		Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
+		d3ddev.UpdateSurface(stage, Null, _surface, Null)
+		stage.LockRect(lockedrect, Null, 0)
+
+		' copy the pixel data across
+		For Local y:Int = 0 Until _persistpixmap.height
+			Local srcptr:Byte Ptr = _persistpixmap.pixels + y * _persistpixmap.pitch
+			Local dstptr:Byte Ptr = lockedrect.pBits + y * lockedrect.Pitch
+			MemCopy dstptr, srcptr, _persistpixmap.width * 4
+		Next
+		stage.UnlockRect()
+
+		' copy from the staging surface to the render surface
+		d3ddev.UpdateSurface(stage, Null, _surface, Null)
+
+		' cleanup
+		stage.release_
 	EndMethod
 EndType
 
 Type TD3D9RenderImage Extends TRenderImage
 	Field _d3ddev:IDirect3DDevice9
+	Field _viewport:D3DVIEWPORT9
 	Field _matrix:Float[]
+
+	Method Delete()
+		If _d3ddev
+			_d3ddev.release_
+			_d3ddev = Null
+		EndIf
+	EndMethod
 
 	Method CreateRenderImage:TD3D9RenderImage(width:Int ,height:Int)
 		Self.width=width	' TImage.width
@@ -45,14 +114,42 @@ Type TD3D9RenderImage Extends TRenderImage
 					0.0, 0.0, 1.0, 0.0,..
 					-1-(1.0/width), 1+(1.0/height), 1.0, 1.0 ]
 
+		_viewport = New D3DVIEWPORT9
+		_viewport.width = width
+		_viewport.height = height
+		_viewport.MaxZ = 1.0
+
 		Return Self
 	EndMethod
-	
+
 	Method Init(d3ddev:IDirect3DDevice9)
 		_d3ddev = d3ddev
+		_d3ddev.AddRef()
 
-		frames=New TD3D9RenderImageFrame[1]
+		frames = New TD3D9RenderImageFrame[1]
 		frames[0] = New TD3D9RenderImageFrame.CreateRenderTarget(d3ddev, width, height)
+
+		'  clear the new render target surface
+		Local prevsurf:IDirect3DSurface9
+		Local prevmatrix:Float[16]
+		Local prevviewport:D3DVIEWPORT9 = New D3DVIEWPORT9
+		' get previous
+		d3ddev.GetRenderTarget(0, prevsurf)
+		d3ddev.GetTransform(D3DTS_PROJECTION, prevmatrix)
+		d3ddev.GetViewport(prevviewport)
+
+		' set and clear
+		d3ddev.SetRenderTarget(0, TD3D9RenderImageFrame(frames[0])._surface)
+		d3ddev.SetTransform(D3DTS_PROJECTION, _matrix)
+		d3ddev.Clear(0, Null, D3DCLEAR_TARGET, 0, 0.0, 0)
+
+		' reset to previous
+		_d3ddev.SetRenderTarget(0, prevsurf)
+		_d3ddev.SetTransform(D3DTS_PROJECTION, prevmatrix)
+		_d3ddev.SetViewport(prevviewport)
+
+		' cleanup
+		prevsurf.release_
 	EndMethod
 
 	Method Frame:TImageFrame(index=0)
@@ -60,8 +157,17 @@ Type TD3D9RenderImage Extends TRenderImage
 	EndMethod
 	
 	Method SetRenderImage()
-		_d3ddev.SetRenderTarget 0, TD3D9RenderImageFrame(frames[0])._surface
-		_d3ddev.SetTransform D3DTS_PROJECTION,_matrix
+		_d3ddev.SetRenderTarget(0, TD3D9RenderImageFrame(frames[0])._surface)
+		_d3ddev.SetTransform(D3DTS_PROJECTION,_matrix)
+		_d3ddev.SetViewport(_viewport)
+	EndMethod
+
+	Method OnDeviceLost()
+		TD3D9RenderImageFrame(frames[0]).OnDeviceLost(_d3ddev, width, height)
+	EndMethod
+
+	Method OnDeviceReset()
+		TD3D9RenderImageFrame(frames[0]).OnDeviceReset(_d3ddev)
 	EndMethod
 EndType
 

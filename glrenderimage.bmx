@@ -31,6 +31,10 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		glBindTexture GL_TEXTURE_2D,name
 		glFramebufferTexture2D GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,name,0
 
+		' set and clear to a default colour
+		glClearColor 0, 0, 0, 0
+		glClear(GL_COLOR_BUFFER_BIT)
+
 		uscale = 1.0 / width
 		vscale = 1.0 / height
 

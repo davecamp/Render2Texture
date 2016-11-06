@@ -53,9 +53,13 @@ Type TD3D11RenderImage Extends TRenderImage
 	Field _d3ddevcon:ID3D11DeviceContext
 	Field _matrixbuffer:ID3D11Buffer
 	Field _matrix:Float[16]
+	Field _viewport:D3D11_VIEWPORT
 	
 	Method Delete()
-		If _matrixbuffer _matrixbuffer.release_
+		If _matrixbuffer
+			_matrixbuffer.release_
+			_matrixbuffer = Null
+		EndIf
 	EndMethod
 
 	Method CreateRenderImage:TD3D11RenderImage(width:Int ,height:Int)
@@ -67,6 +71,11 @@ Type TD3D11RenderImage Extends TRenderImage
 					0.0,0.0,1.0,0.0,..
 					0.0,0.0,0.0,1.0]
 
+		_viewport = New D3D11_VIEWPORT
+		_viewport.Width = width
+		_viewport.Height = height
+		_viewport.MaxDepth = 1.0
+
 		Return Self
 	EndMethod
 
@@ -77,33 +86,25 @@ Type TD3D11RenderImage Extends TRenderImage
 		desc.ByteWidth = SizeOf(_matrix)
 		desc.Usage = D3D11_USAGE_DEFAULT
 		desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER
-		
+
 		Local data:D3D11_SUBRESOURCE_DATA = New D3D11_SUBRESOURCE_DATA
 		data.pSysMem = _matrix
 
-		Local hr = d3ddev.CreateBuffer(desc, data, _matrixbuffer)
-		If hr < 0
-			WriteStdout "Cannot create matrix buffer"
-		EndIf
-		
+		If d3ddev.CreateBuffer(desc, data, _matrixbuffer) < 0 Throw "TD3D11RenderImage:Init cannot create matrix buffer"
+
 		frames=New TD3D11RenderImageFrame[1]
 		frames[0] = New TD3D11RenderImageFrame.CreateRenderTarget(d3ddev, width, height)
+
+		' clear
+		_d3ddevcon.ClearRenderTargetView(TD3D11RenderImageFrame(frames[0])._rtv, [0.0, 0.0, 0.0, 0.0])
 	EndMethod
 
 	Method Frame:TImageFrame(index=0)
 		Return frames[0]
 	EndMethod
-	
+
 	Method SetRenderImage()
-		Local vp:D3D11_VIEWPORT = New D3D11_VIEWPORT
-		vp.Width = width
-		vp.Height = height
-		vp.MinDepth = 0.0
-		vp.MaxDepth = 1.0
-		vp.TopLeftX = 0.0
-		vp.TopLeftY = 0.0
-		_d3ddevcon.RSSetViewports(1,vp)
-		
+		_d3ddevcon.RSSetViewports(1,_viewport)
 		_d3ddevcon.OMSetRenderTargets(1, Varptr TD3D11RenderImageFrame(frames[0])._rtv, Null)
 		_d3ddevcon.VSSetConstantBuffers(0, 1, Varptr _matrixbuffer)
 	EndMethod
