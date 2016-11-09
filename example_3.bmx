@@ -30,7 +30,6 @@ While Not KeyDown(KEY_ESCAPE)
 Wend
 End
 
-?win32
 Function InitResources()
 	gRenderImage = CreateRenderImage(gGraphics, 300, 150)
 	SetClsColor(40, 80, 160)
@@ -45,6 +44,7 @@ Function InitResources()
 	Next
 EndFunction
 
+?win32
 Function ChangeDriver()
 	If TGLMax2DDriver(gGraphicsDriver)
 		gGraphicsDriver = D3D9Max2DDriver()
