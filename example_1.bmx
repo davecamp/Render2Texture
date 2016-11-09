@@ -3,7 +3,6 @@ Strict
 
 Import "renderimage.bmx"
 
-SetGraphicsDriver D3D9Max2DDriver()
 Local gc:TGraphics = Graphics(800, 600, 32)
 Local rt:TRenderImage = CreateRenderImage(gc, 300, 150)
 

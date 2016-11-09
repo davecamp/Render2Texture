@@ -7,7 +7,6 @@ Global gGraphicsDriver:TGraphicsDriver
 Global gGraphics:TGraphics
 Global gRenderImage:TRenderImage
 
-SetGraphicsDriver d3d11max2ddriver()
 gGraphicsDriver = GetGraphicsDriver()
 gGraphics = Graphics(800, 600)
 InitResources()
