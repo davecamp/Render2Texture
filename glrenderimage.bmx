@@ -7,7 +7,14 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 	Field _fbo:Int
 	
 	Method Delete()
-		glDeleteFramebuffers 1, Varptr _fbo
+		DeleteFramebuffer
+	EndMethod
+	
+	Method DeleteFramebuffer()
+		If _fbo
+			glDeleteFramebuffers(1, Varptr _fbo)
+			_fbo = -1 '???
+		EndIf
 	EndMethod
 	
 	Method CreateRenderTarget:TGLRenderImageFrame(width, height)
@@ -43,6 +50,10 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 
 		Return Self
 	EndMethod
+	
+	Method DestroyRenderTarget()
+		DeleteFramebuffer()
+	EndMethod
 EndType
 
 Type TGLRenderImage Extends TRenderImage
@@ -53,6 +64,10 @@ Type TGLRenderImage Extends TRenderImage
 		Self.height = height	' TImage.height
 
 		Return Self
+	EndMethod
+	
+	Method DestroyRenderImage()
+		TGLRenderImageFrame(frames[0]).DestroyRenderTarget()
 	EndMethod
 	
 	Method Init()

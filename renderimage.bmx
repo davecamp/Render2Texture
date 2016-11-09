@@ -8,7 +8,9 @@ Import "d3d9renderimagecontext.bmx"
 Import "d3d11renderimagecontext.bmx"
 ?
 
+Private
 Global _ric:TRenderImageContext
+Public
 
 Function CreateRenderImageContext:TRenderImageContext(gc:TGraphics)
 	Local max2d:TMax2DGraphics = TMax2DGraphics(gc)
@@ -28,12 +30,18 @@ Function CreateRenderImageContext:TRenderImageContext(gc:TGraphics)
 EndFunction
 
 Function CreateRenderImage:TRenderImage(gc:TGraphics, width:Int, height:Int)
-	If Not _ric _ric = CreateRenderImageContext(gc)
+	If _ric And _ric.GraphicsContext() <> gc
+		_ric.Destroy()
+		_ric = Null
+	EndIf
+	
+	If Not _ric	_ric = CreateRenderImageContext(gc)
 	
 	'sanity check
 	?debug
 	Assert _ric <> Null, "The code for the current TGraphics instance doesn't exist yet for rendering to a texture, feel free to write one."
 	?
+
 	Return _ric.CreateRenderImage(width, height)
 EndFunction
 
@@ -44,9 +52,5 @@ Function SetRenderImage(renderimage:TRenderImage)
 	?
 
 	_ric.SetRenderImage(renderimage)
-EndFunction
-
-Function CreateRenderImagePixmap:TPixmap(renderimage:TRenderImage)
-	
 EndFunction
 

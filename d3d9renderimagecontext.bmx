@@ -13,6 +13,31 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 	Field _renderimages:TList
 	Field _deviceok:Int = True
 
+	Method Delete()
+		ReleaseNow()
+	EndMethod
+	
+	Method ReleaseNow()
+		If _renderimages
+			For Local ri:TD3D9RenderImage = EachIn _renderimages
+				ri.DestroyRenderImage()
+			Next
+		EndIf
+
+		_renderimages = Null
+		_viewport = Null
+		_gc = Null
+
+		If _backbuffer
+			_backbuffer.release_
+			_backbuffer = Null
+		EndIf
+		If _d3ddev
+			_d3ddev.release_
+			_d3ddev = Null
+		EndIf
+	EndMethod
+
 	Method Create:TD3D9RenderimageContext(context:TGraphics)
 		Local gc:TD3D9Graphics = TD3D9Graphics(context)
 		_gc = gc
@@ -41,9 +66,14 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 		Return Self
 	EndMethod
 	
-	Method Close()
+	Method GraphicsContext:TGraphics()
+		Return _gc
+	EndMethod
+	
+	Method Destroy()
 		_gc.RemoveDeviceLostCallback(fnOnDeviceLost)
 		_gc.RemoveDeviceResetCallback(fnOnDeviceReset)
+		ReleaseNow()
 	EndMethod
 
 	Method CreateRenderImage:TRenderImage(width:Int, height:Int)

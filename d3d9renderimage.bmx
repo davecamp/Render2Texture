@@ -34,6 +34,10 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 
 		Return Self
 	EndMethod
+	
+	Method DestroyRenderImage()
+		ReleaseNow()
+	EndMethod
 
 	Method OnDeviceLost(d3ddev:IDirect3DDevice9, width:Int, height:Int)
 		_persistpixmap = CreatePixmap(width, height, PF_RGBA)
@@ -74,7 +78,6 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 		d3ddev.CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
 
 		Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
-		d3ddev.UpdateSurface(stage, Null, _surface, Null)
 		stage.LockRect(lockedrect, Null, 0)
 
 		' copy the pixel data across
@@ -90,6 +93,7 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 
 		' cleanup
 		stage.release_
+		_persistpixmap = Null
 	EndMethod
 EndType
 
@@ -99,6 +103,10 @@ Type TD3D9RenderImage Extends TRenderImage
 	Field _matrix:Float[]
 
 	Method Delete()
+		ReleaseNow()
+	EndMethod
+	
+	Method ReleaseNow()
 		If _d3ddev
 			_d3ddev.release_
 			_d3ddev = Null
@@ -120,6 +128,10 @@ Type TD3D9RenderImage Extends TRenderImage
 		_viewport.MaxZ = 1.0
 
 		Return Self
+	EndMethod
+	
+	Method DestroyRenderImage()
+		ReleaseNow()
 	EndMethod
 
 	Method Init(d3ddev:IDirect3DDevice9)

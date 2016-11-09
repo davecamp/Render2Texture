@@ -6,6 +6,25 @@ Import "renderimageinterface.bmx"
 Global _d3ddev:ID3D11Device
 
 Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
+	Method Delete()
+		ReleaseNow()
+	EndMethod
+	
+	Method ReleaseNow()
+		If _tex2D
+			_tex2D.release_
+			_tex2D = Null
+		EndIf
+		If _srv
+			_srv.release_
+			_srv = Null
+		EndIf
+		If _rtv
+			_rtv.release_
+			_rtv = Null
+		EndIf
+	EndMethod
+	
 	Method CreateRenderTarget:TD3D11RenderImageFrame( d3ddev:ID3D11Device, width, height )
 		'create texture
 		Local desc:D3D11_TEXTURE2D_DESC = New D3D11_TEXTURE2D_DESC
@@ -47,6 +66,10 @@ Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 
 		Return Self
 	EndMethod
+	
+	Method DestroyRenderTarget()
+		ReleaseNow()
+	EndMethod
 EndType
 
 Type TD3D11RenderImage Extends TRenderImage
@@ -77,6 +100,10 @@ Type TD3D11RenderImage Extends TRenderImage
 		_viewport.MaxDepth = 1.0
 
 		Return Self
+	EndMethod
+	
+	Method DestroyRenderImage()
+		TD3D11RenderImageFrame(frames[0]).DestroyRenderTarget()
 	EndMethod
 
 	Method Init(d3ddev:ID3D11Device, d3ddevcon:ID3D11DeviceContext)
