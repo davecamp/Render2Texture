@@ -1,7 +1,6 @@
 # Render2Texture
 A render to texture solution for the BlitzMax language
 
-This a currently a work in progress.
 
 # NOTES
 For d3d9 render-textures to persist during the device lost and reset state caused by alt-tab it was required to modify the d3d9graphics.bmx file to make way for texture management functionality.
