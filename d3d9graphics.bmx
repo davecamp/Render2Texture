@@ -213,7 +213,10 @@ Type TD3D9Graphics Extends TGraphics
 		Local activate:Short = wp & $FFFF
 		Local state:Short = (wp Shr 16) & $FFFF
 		
-		If activate = 0 OnDeviceLost()
+		' only release when full screen
+		If activate = 0 And _depth <> 0
+			OnDeviceLost()
+		EndIf
 		' the Flip(sync) method will call into ResetD3DDevice where OnDeviceReset will be called
 	EndMethod
 	

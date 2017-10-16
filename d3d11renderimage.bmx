@@ -4,6 +4,7 @@ Import srs.d3d11max2d
 Import "renderimageinterface.bmx"
 
 Global _d3ddev:ID3D11Device
+Global _sampler:ID3D11SamplerState
 
 Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 	Method Delete()
@@ -26,6 +27,28 @@ Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 	EndMethod
 	
 	Method CreateRenderTarget:TD3D11RenderImageFrame( d3ddev:ID3D11Device, width, height )
+		If Not _sampler
+			Local sd:D3D11_SAMPLER_DESC = New D3D11_SAMPLER_DESC
+			sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR
+			sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP
+			sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP
+			sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP
+			sd.MipLODBias = 0.0
+			sd.MaxAnisotropy = 1
+			sd.ComparisonFunc = D3D11_COMPARISON_GREATER_EQUAL
+			sd.BorderColor0 = 0.0
+			sd.BorderColor1 = 0.0
+			sd.BorderColor2 = 0.0
+			sd.BorderColor3 = 0.0
+			sd.MinLOD = 0.0
+			sd.MaxLOD = D3D11_FLOAT32_MAX
+		
+			If d3ddev.CreateSamplerState(sd,_sampler)<0
+				WriteStdout "Cannot create point sampler state~nExiting.~n"
+			EndIf
+
+		EndIf
+	
 		'create texture
 		Local desc:D3D11_TEXTURE2D_DESC = New D3D11_TEXTURE2D_DESC
 		desc.Width = width
@@ -131,9 +154,21 @@ Type TD3D11RenderImage Extends TRenderImage
 	EndMethod
 
 	Method SetRenderImage()
+		Local pResource:ID3D11ShaderResourceView = Null
+		_d3ddevcon.PSGetShaderResources(0, 1, Varptr pResource)
+
+		Local frame:TD3D11RenderImageFrame = TD3D11RenderImageFrame(frames[0])
+		If frame._srv = pResource
+			pResource = Null
+			_d3ddevcon.PSSetShaderResources(0, 1, Varptr pResource)
+		EndIf
+		
+		If pResource pResource.Release_
+		
 		_d3ddevcon.RSSetViewports(1,_viewport)
 		_d3ddevcon.OMSetRenderTargets(1, Varptr TD3D11RenderImageFrame(frames[0])._rtv, Null)
 		_d3ddevcon.VSSetConstantBuffers(0, 1, Varptr _matrixbuffer)
+		_d3ddevcon.PSSetSamplers(0, 1, Varptr _sampler)
 	EndMethod
 EndType
 

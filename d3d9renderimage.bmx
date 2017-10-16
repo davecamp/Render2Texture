@@ -169,6 +169,16 @@ Type TD3D9RenderImage Extends TRenderImage
 	EndMethod
 	
 	Method SetRenderImage()
+		Local pTexture:IDirect3DTexture9
+		_d3ddev.GetTexture(0, pTexture)
+		
+		Local frame:TD3D9RenderImageFrame = TD3D9RenderImageFrame(frames[0])
+		If frame._texture = pTexture
+			_d3ddev.SetTexture(0, Null)
+		EndIf
+		
+		If pTexture pTexture.Release_
+		
 		_d3ddev.SetRenderTarget(0, TD3D9RenderImageFrame(frames[0])._surface)
 		_d3ddev.SetTransform(D3DTS_PROJECTION,_matrix)
 		_d3ddev.SetViewport(_viewport)
