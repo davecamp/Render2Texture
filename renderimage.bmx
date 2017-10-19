@@ -30,7 +30,10 @@ Function CreateRenderImageContext:TRenderImageContext(gc:TGraphics)
 EndFunction
 
 Function CreateRenderImage:TRenderImage(gc:TGraphics, width:Int, height:Int)
-	If _ric And _ric.GraphicsContext() <> gc
+	Local max2d:TMax2DGraphics = TMax2DGraphics(gc)
+	If Not max2d Return ' only supports Max2D
+	
+	If _ric And _ric.GraphicsContext() <> max2d._graphics
 		_ric.Destroy()
 		_ric = Null
 	EndIf

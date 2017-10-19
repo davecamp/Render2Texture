@@ -213,7 +213,7 @@ Type TD3D9Graphics Extends TGraphics
 		Local activate:Short = wp & $FFFF
 		Local state:Short = (wp Shr 16) & $FFFF
 		
-		' only release when full screen
+		' only release when fullscreen
 		If activate = 0 And _depth <> 0
 			OnDeviceLost()
 		EndIf
