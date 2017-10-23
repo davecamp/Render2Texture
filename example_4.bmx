@@ -1,7 +1,7 @@
 SuperStrict
 
 Import "renderimage.bmx"
-
+SetGraphicsDriver glmax2dDriver()
 Global gc:TGraphics = Graphics(800, 600)
 
 SetVirtualResolution(1920, 1080)

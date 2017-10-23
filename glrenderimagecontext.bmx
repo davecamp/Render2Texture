@@ -12,6 +12,8 @@ Type TGLRenderImageContext Extends TRenderImageContext
 	Field _width:Int
 	Field _height:Int
 	Field _renderimages:TList
+	
+	Field _matrix:Float[16]
 
 	Method Delete()
 		Destroy()
@@ -39,6 +41,9 @@ Type TGLRenderImageContext Extends TRenderImageContext
 
 		' get the backbuffer - usually 0
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, Varptr _backbuffer)
+		
+		glGetFloatv(GL_PROJECTION_MATRIX, _matrix)
+		
 		Return Self
 	EndMethod
 
@@ -59,15 +64,12 @@ Type TGLRenderImageContext Extends TRenderImageContext
 
 	Method SetRenderImage(renderimage:TRenderimage)
 		If Not renderimage
-			glBindFramebuffer GL_FRAMEBUFFER,_backbuffer
+			glBindFramebuffer(GL_FRAMEBUFFER,_backbuffer)
 		
-			glMatrixMode GL_PROJECTION
-			glLoadIdentity
-			glOrtho 0,_width,_height,0,-1,1
+			glMatrixMode(GL_PROJECTION)
+			glLoadMatrixf(_matrix)
 			
-			glMatrixMode GL_MODELVIEW
-			glLoadIdentity
-			glViewport 0,0,_width,_height 
+			glViewport(0,0,_width,_height)
 		Else
 			renderimage.SetRenderImage()
 		EndIf

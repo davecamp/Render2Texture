@@ -57,11 +57,16 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 EndType
 
 Type TGLRenderImage Extends TRenderImage
-	Field _matrix:Float[]
+	Field _matrix:Float[16]
 
 	Method CreateRenderImage:TGLRenderImage(width:Int ,height:Int)
 		Self.width = width		' TImage.width
 		Self.height = height	' TImage.height
+
+		_matrix = [	2.0/width, 0.0, 0.0, 0.0,..
+					0.0, -2.0/height, 0.0, 0.0,..
+					0.0, 0.0, 1.0, 0.0,..
+					-1-(1.0/width), 1+(1.0/height), 1.0, 1.0 ]
 
 		Return Self
 	EndMethod
@@ -80,12 +85,10 @@ Type TGLRenderImage Extends TRenderImage
 	EndMethod
 	
 	Method SetRenderImage()
-		glBindFrameBuffer GL_FRAMEBUFFER, TGLRenderImageFrame(frames[0])._fbo
+		glBindFrameBuffer(GL_FRAMEBUFFER, TGLRenderImageFrame(frames[0])._fbo)
 
-		glMatrixMode GL_PROJECTION
-		glLoadIdentity
-		glOrtho 0,width,0,height,-1,1
-		glMatrixMode GL_MODELVIEW
+		glMatrixMode(GL_PROJECTION)
+		glLoadMatrixf(_matrix)
 	
 		glViewport 0,0,width,height 
 	EndMethod
