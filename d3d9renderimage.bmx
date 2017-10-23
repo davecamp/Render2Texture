@@ -132,6 +132,7 @@ Type TD3D9RenderImage Extends TRenderImage
 	
 	Method DestroyRenderImage()
 		ReleaseNow()
+		TD3D9RenderImageFrame(frames[0]).ReleaseNow()
 	EndMethod
 
 	Method Init(d3ddev:IDirect3DDevice9)
@@ -165,6 +166,8 @@ Type TD3D9RenderImage Extends TRenderImage
 	EndMethod
 
 	Method Frame:TImageFrame(index=0)
+		If Not frames Return Null
+		If Not frames[0] Return Null
 		Return frames[0]
 	EndMethod
 	

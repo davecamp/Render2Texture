@@ -51,6 +51,11 @@ Type TGLRenderImageContext Extends TRenderImageContext
 		renderimage.Init()
 		Return  renderimage
 	EndMethod
+	
+	Method DestroyRenderImage(renderImage:TRenderImage)
+		renderImage.DestroyRenderImage()
+		_renderImages.Remove(renderImage)
+	EndMethod
 
 	Method SetRenderImage(renderimage:TRenderimage)
 		If Not renderimage

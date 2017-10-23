@@ -48,6 +48,15 @@ Function CreateRenderImage:TRenderImage(gc:TGraphics, width:Int, height:Int)
 	Return _ric.CreateRenderImage(width, height)
 EndFunction
 
+Function DestroyRenderImage(renderImage:TRenderImage)
+	' sanity check
+	?debug
+	Assert _ric <> Null, "No TRenderImage instances have been created"
+	?
+
+	_ric.DestroyRenderImage(renderImage)
+EndFunction
+
 Function SetRenderImage(renderimage:TRenderImage)
 	' sanity check
 	?debug

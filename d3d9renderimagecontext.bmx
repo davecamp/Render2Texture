@@ -8,7 +8,7 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 	Field _gc:TD3D9Graphics
 	Field _d3ddev:IDirect3DDevice9
 	Field _backbuffer:IDirect3DSurface9
-	Field _matrix:Float[]
+	Field _matrix:Float[16]
 	Field _viewport:D3DVIEWPORT9
 	Field _renderimages:TList
 	Field _deviceok:Int = True
@@ -52,15 +52,8 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 
 		_viewport = New D3DVIEWPORT9
 		_d3ddev.GetViewport(_viewport)
-		
-		Local desc:D3DSURFACE_DESC = New D3DSURFACE_DESC
-		_backbuffer.GetDesc(desc)
-
-		_matrix = [	2.0/desc.width, 0.0, 0.0, 0.0,..
-					0.0, -2.0/desc.height, 0.0, 0.0,..
-					0.0, 0.0, 1.0, 0.0,..
-					-1-(1.0/desc.width), 1+(1.0/desc.height), 1.0, 1.0 ]
-
+		_d3ddev.GetTransform(D3DTS_PROJECTION, _matrix)
+			
 		_renderimages = New TList
 
 		Return Self
@@ -82,6 +75,11 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 		_renderimages.AddLast(renderimage)
 
 		Return renderimage
+	EndMethod
+	
+	Method DestroyRenderImage(renderImage:TRenderImage)
+		renderImage.DestroyRenderImage()
+		_renderimages.Remove(renderImage)
 	EndMethod
 
 	Method SetRenderImage(renderimage:TRenderimage)

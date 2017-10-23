@@ -81,6 +81,11 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 		Return renderimage
 	EndMethod
 	
+	Method DestroyRenderImage(renderImage:TRenderImage)
+		renderImage.DestroyRenderImage()
+		_renderimages.Remove(renderImage)
+	EndMethod
+	
 	Method GraphicsContext:TGraphics()
 		Return _gc
 	EndMethod
