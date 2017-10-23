@@ -1,6 +1,8 @@
 
 Strict
 
+Import Pub.GLEW
+Import BRL.GLMax2D
 Import "renderimageinterface.bmx"
 
 Type TGLRenderImageFrame Extends TGLImageFrame

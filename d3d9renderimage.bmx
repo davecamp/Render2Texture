@@ -1,5 +1,6 @@
 Strict
 
+Import BRL.D3D9Max2D
 Import "renderimageinterface.bmx"
 
 Type TD3D9RenderImageFrame Extends TD3D9ImageFrame

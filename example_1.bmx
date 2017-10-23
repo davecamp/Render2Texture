@@ -1,9 +1,10 @@
 
 Strict
-
+Framework Brl.StandardIO
 Import "renderimage.bmx"
 
-Local gc:TGraphics = Graphics(800, 600,32)
+SetGraphicsDriver d3d11max2ddriver()
+Local gc:TGraphics = Graphics(800, 600)
 
 Local rt:TRenderImage = CreateRenderImage(gc, 300, 150)
 Local r2:TRenderImage = CreateRenderImage(gc, 300, 150)

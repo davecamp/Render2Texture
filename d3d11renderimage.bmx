@@ -3,9 +3,6 @@ Strict
 Import srs.d3d11max2d
 Import "renderimageinterface.bmx"
 
-Global _d3ddev:ID3D11Device
-Global _sampler:ID3D11SamplerState
-
 Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 	Method Delete()
 		ReleaseNow()
@@ -168,7 +165,7 @@ Type TD3D11RenderImage Extends TRenderImage
 		_d3ddevcon.RSSetViewports(1,_viewport)
 		_d3ddevcon.OMSetRenderTargets(1, Varptr TD3D11RenderImageFrame(frames[0])._rtv, Null)
 		_d3ddevcon.VSSetConstantBuffers(0, 1, Varptr _matrixbuffer)
-		_d3ddevcon.PSSetSamplers(0, 1, Varptr _sampler)
+		_d3ddevcon.PSSetSamplers(0, 1, Varptr TD3D11RenderImageFrame(frames[0])._sampler)
 	EndMethod
 EndType
 
