@@ -142,7 +142,11 @@ Type TD3D9DeviceStateCallback
 EndType
 
 Type TD3D9Graphics Extends TGraphics
-
+	Method New()
+		_onDeviceLostCallbacks = New TList
+		_onDeviceResetCallbacks = New TList
+	EndMethod
+	
 	Method Attach:TD3D9Graphics( hwnd,flags )
 		Local rect[4]
 		GetClientRect hwnd,rect
@@ -202,8 +206,6 @@ Type TD3D9Graphics Extends TGraphics
 		_depth=depth
 		_hertz=hertz
 		_flags=flags
-		_onDeviceLostCallbacks = New TList
-		_onDeviceResetCallbacks = New TList
 
 		Return Self
 	End Method
