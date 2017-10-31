@@ -23,7 +23,7 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		Local prevFBO:Int
 		Local prevTexture:Int
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, Varptr prevFBO)
-		glGetIntegerv(GL_TEXTURE_2D,Varptr prevTexture)
+		glGetIntegerv(GL_TEXTURE_BINDING_2D,Varptr prevTexture)
 		
 		glGenTextures 1, Varptr name
 		glBindTexture GL_TEXTURE_2D,name
@@ -61,7 +61,7 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		Local prevTexture:Int
 		Local prevFBO:Int
 		
-		glGetIntegerv(GL_TEXTURE_2D,Varptr prevTexture)
+		glGetIntegerv(GL_TEXTURE_BINDING_2D,Varptr prevTexture)
 		glBindTexture(GL_TEXTURE_2D,name)
 
 		Local pixmap:TPixmap = CreatePixmap(width, height, PF_RGBA8888)		
