@@ -66,3 +66,17 @@ Function SetRenderImage(renderimage:TRenderImage)
 	_ric.SetRenderImage(renderimage)
 EndFunction
 
+Function CreatePixmapFromRenderImage:TPixmap(renderimage:TRenderImage)
+	' sanity check
+	?debug
+	Assert _ric <> Null, "No TRenderImage instances have been created"
+	?
+
+	Return _ric.CreatePixmapFromRenderImage(renderimage)
+EndFunction
+
+
+
+
+
+

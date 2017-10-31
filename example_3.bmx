@@ -7,6 +7,7 @@ Global gGraphicsDriver:TGraphicsDriver
 Global gGraphics:TGraphics
 Global gRenderImage:TRenderImage
 
+SetGraphicsDriver GLMax2DDriver()
 gGraphicsDriver = GetGraphicsDriver()
 gGraphics = Graphics(800, 600)
 InitResources()

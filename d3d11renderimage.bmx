@@ -90,6 +90,36 @@ Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 	Method DestroyRenderTarget()
 		ReleaseNow()
 	EndMethod
+	
+	Method ToPixmap:TPixmap(d3ddev:ID3D11Device, d3ddevcon:ID3D11DeviceContext)
+		Local pDesc:D3D11_TEXTURE2D_DESC = New D3D11_TEXTURE2D_DESC
+		_tex2D.GetDesc(pDesc)
+		
+		Local pixmap:TPixmap = CreatePixmap(pDesc.Width, pDesc.Height, PF_RGBA8888)
+
+		' create a temp resource
+		pDesc.Usage = D3D11_USAGE_STAGING
+		pDesc.BindFlags = 0
+		pDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ
+		pDesc.MiscFlags = 0
+
+		Local pStage:ID3D11Texture2D
+		d3ddev.CreateTexture2D(pDesc, Null, pStage)
+		d3ddevcon.CopyResource(pStage, _tex2D)
+
+		Local map:D3D11_MAPPED_SUBRESOURCE = New D3D11_MAPPED_SUBRESOURCE
+		d3ddevcon.Map(pStage, 0, D3D11_MAP_READ, 0, map)
+			For Local y:Int = 0 Until pixmap.height
+				Local dst:Byte Ptr = pixmap.pixels + y * pixmap.pitch
+				Local src:Byte Ptr = map.pData + y * map.RowPitch
+				MemCopy(dst, src, pixmap.pitch)
+			Next
+		d3ddevcon.UnMap(pStage, 0)
+		
+		pStage.Release_()
+		
+		Return pixmap
+	EndMethod
 EndType
 
 Type TD3D11RenderImage Extends TRenderImage
@@ -166,6 +196,10 @@ Type TD3D11RenderImage Extends TRenderImage
 		_d3ddevcon.OMSetRenderTargets(1, Varptr TD3D11RenderImageFrame(frames[0])._rtv, Null)
 		_d3ddevcon.VSSetConstantBuffers(0, 1, Varptr _matrixbuffer)
 		_d3ddevcon.PSSetSamplers(0, 1, Varptr TD3D11RenderImageFrame(frames[0])._sampler)
+	EndMethod
+	
+	Method ToPixmap:TPixmap(d3ddev:ID3D11Device)
+		Return TD3D11RenderImageFrame(frames[0]).ToPixmap(d3ddev, _d3ddevcon)
 	EndMethod
 EndType
 

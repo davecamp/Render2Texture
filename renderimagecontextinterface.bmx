@@ -11,4 +11,5 @@ Type TRenderimageContext
 	Method CreateRenderImage:TRenderImage(width:Int, height:Int) Abstract
 	Method DestroyRenderImage(renderImage:TRenderImage) Abstract
 	Method SetRenderImage(renderimage:TRenderImage) Abstract
+	Method CreatePixmapFromRenderImage:TPixmap(renderImage:TRenderImage) Abstract
 EndType

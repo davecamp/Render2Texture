@@ -74,4 +74,8 @@ Type TGLRenderImageContext Extends TRenderImageContext
 			renderimage.SetRenderImage()
 		EndIf
 	EndMethod
+	
+	Method CreatePixmapFromRenderImage:TPixmap(renderImage:TRenderImage)
+		Return TGLRenderImage(renderImage).ToPixmap()
+	EndMethod
 EndType

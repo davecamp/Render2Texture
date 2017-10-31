@@ -56,6 +56,21 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 	Method DestroyRenderTarget()
 		DeleteFramebuffer()
 	EndMethod
+	
+	Method ToPixmap:TPixmap(width:Int, height:Int)
+		Local prevTexture:Int
+		Local prevFBO:Int
+		
+		glGetIntegerv(GL_TEXTURE_2D,Varptr prevTexture)
+		glBindTexture(GL_TEXTURE_2D,name)
+
+		Local pixmap:TPixmap = CreatePixmap(width, height, PF_RGBA8888)		
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixmap.pixels)
+		
+		glBindTexture(GL_TEXTURE_2D,prevTexture)
+				
+		Return pixmap
+	EndMethod
 EndType
 
 Type TGLRenderImage Extends TRenderImage
@@ -66,7 +81,7 @@ Type TGLRenderImage Extends TRenderImage
 		Self.height = height	' TImage.height
 
 		_matrix = [	2.0/width, 0.0, 0.0, 0.0,..
-					0.0, -2.0/height, 0.0, 0.0,..
+					0.0, 2.0/height, 0.0, 0.0,..
 					0.0, 0.0, 1.0, 0.0,..
 					-1-(1.0/width), -1-(1.0/height), 1.0, 1.0 ]
 
@@ -93,6 +108,10 @@ Type TGLRenderImage Extends TRenderImage
 		glLoadMatrixf(_matrix)
 	
 		glViewport 0,0,width,height 
+	EndMethod
+	
+	Method ToPixmap:TPixmap()
+		Return TGLRenderImageFrame(frames[0]).ToPixmap(width, height)
 	EndMethod
 EndType
 

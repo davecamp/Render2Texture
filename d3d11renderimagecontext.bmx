@@ -86,6 +86,10 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 		_renderimages.Remove(renderImage)
 	EndMethod
 	
+	Method CreatePixmapFromRenderImage:TPixmap(renderImage:TRenderImage)
+		Return TD3D11RenderImage(renderImage).ToPixmap(_d3ddev)
+	EndMethod
+	
 	Method GraphicsContext:TGraphics()
 		Return _gc
 	EndMethod

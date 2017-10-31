@@ -91,6 +91,10 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 			renderimage.SetRenderImage()
 		EndIf
 	EndMethod
+	
+	Method CreatePixmapFromRenderImage:TPixmap(renderImage:TRenderImage)
+		Return TD3D9RenderImage(renderImage).ToPixmap()
+	EndMethod
 
 	Method OnDeviceLost()
 		If _deviceok = False Return

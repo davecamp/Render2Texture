@@ -41,29 +41,7 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 	EndMethod
 
 	Method OnDeviceLost(d3ddev:IDirect3DDevice9, width:Int, height:Int)
-		_persistpixmap = CreatePixmap(width, height, PF_RGBA)
-
-		' use a staging surface to get the texture contents
-		Local stage:IDirect3DSurface9
-		d3ddev.CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
-
-		If d3ddev.GetRenderTargetData(_surface, stage) < 0 Throw "TD3D9RenderImageFrame:OnDeviceLost:GetRenderTargetData failed"
-
-		' copy the pixel data across
-		Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
-		If stage.LockRect(lockedrect, Null, 0) < 0 Throw "TD3D9RenderImageFrame:OnDeviceLost:LockRect failed"
-
-		For Local y:Int = 0 Until _persistpixmap.height
-			Local srcptr:Byte Ptr = lockedrect.pBits + y * lockedrect.Pitch
-			Local dstptr:Byte Ptr = _persistpixmap.pixels + y * _persistpixmap.pitch
-			MemCopy dstptr, srcptr, _persistpixmap.width * 4
-		Next
-
-		stage.UnlockRect()
-
-		' cleanup
-		stage.release_
-
+		_persistpixmap = ToPixmap(d3ddev, width, height)
 		ReleaseNow()
 	EndMethod
 
@@ -95,6 +73,34 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 		' cleanup
 		stage.release_
 		_persistpixmap = Null
+	EndMethod
+	
+	Method ToPixmap:TPixmap(d3ddev:IDirect3DDevice9, width:Int, height:Int)
+		Local pixmap:TPixmap = CreatePixmap(width, height, PF_RGBA8888)
+
+		' use a staging surface to get the texture contents
+		Local stage:IDirect3DSurface9
+		d3ddev.CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
+
+		If d3ddev.GetRenderTargetData(_surface, stage) < 0 Throw "TD3D9RenderImageFrame:ToPixmap:GetRenderTargetData failed"
+
+		' copy the pixel data across
+		Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
+		If stage.LockRect(lockedrect, Null, 0) < 0 Throw "TD3D9RenderImageFrame:ToPixmap:LockRect failed"
+
+		For Local y:Int = 0 Until pixmap.height
+			For Local x:Int = 0 Until pixmap.width
+				Local srcptr:Int Ptr = Int Ptr (lockedrect.pBits + x * 4 + y * lockedrect.Pitch)
+				Local dstptr:Int Ptr = Int Ptr (pixmap.pixels + x * 4 + y * pixmap.pitch)
+				dstptr[0] = ((srcptr[0] & $ff) Shl 16) | ((srcptr[0] & $ff0000) Shr 16)| (srcptr[0] & $ff00) | (srcptr[0] & $ff000000)
+			Next
+		Next
+		
+		' cleanup
+		stage.UnlockRect()
+		stage.release_
+		
+		Return pixmap
 	EndMethod
 EndType
 
@@ -186,6 +192,10 @@ Type TD3D9RenderImage Extends TRenderImage
 		_d3ddev.SetRenderTarget(0, TD3D9RenderImageFrame(frames[0])._surface)
 		_d3ddev.SetTransform(D3DTS_PROJECTION,_matrix)
 		_d3ddev.SetViewport(_viewport)
+	EndMethod
+	
+	Method ToPixmap:TPixmap()
+		Return TD3D9RenderImageFrame(frames[0]).ToPixmap(_d3ddev, width, height)
 	EndMethod
 
 	Method OnDeviceLost()
