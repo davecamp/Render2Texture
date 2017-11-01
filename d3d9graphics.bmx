@@ -27,6 +27,8 @@ Global _graphics:TD3D9Graphics
 
 Global _autoRelease:TList
 
+Global _d3dOccQuery:IDirect3DQuery9
+
 Type TD3D9AutoRelease
 	Field unk:IUnknown
 End Type
@@ -73,6 +75,47 @@ Function OpenD3DDevice( hwnd,width,height,depth,hertz,flags )
 	pp.FullScreen_RefreshRateInHz=(hertz * fullscreen)
 	pp.PresentationInterval=D3DPRESENT_INTERVAL_ONE	'IMMEDIATE
 	
+	Function CheckDepthFormat(format)
+	    Return _d3d.CheckDeviceFormat(0,D3DDEVTYPE_HAL,D3DFMT_X8R8G8B8,D3DUSAGE_DEPTHSTENCIL,D3DRTYPE_SURFACE,format)=D3D_OK
+	End Function
+
+	If flags&GRAPHICS_DEPTHBUFFER Or flags&GRAPHICS_STENCILBUFFER
+	    pp.EnableAutoDepthStencil = True
+	    If flags&GRAPHICS_STENCILBUFFER
+	        If Not CheckDepthFormat( D3DFMT_D24S8 )
+	            If Not CheckDepthFormat( D3DFMT_D24FS8 )
+	                If Not CheckDepthFormat( D3DFMT_D24X4S4 )
+	                    If Not CheckDepthFormat( D3DFMT_D15S1 )
+	                        Return False
+	                    Else
+	                        pp.AutoDepthStencilFormat = D3DFMT_D15S1
+	                    EndIf
+	                Else
+	                    pp.AutoDepthStencilFormat = D3DFMT_D24X4S4
+	                EndIf
+	            Else
+	                pp.AutoDepthStencilFormat = D3DFMT_D24FS8
+	            EndIf
+	        Else
+	            pp.AutoDepthStencilFormat = D3DFMT_D24S8
+	        EndIf
+	    Else
+	        If Not CheckDepthFormat( D3DFMT_D32 )
+	            If Not CheckDepthFormat( D3DFMT_D24X8 )
+	                If Not CheckDepthFormat( D3DFMT_D16 )
+	                    Return False
+	                Else
+	                    pp.AutoDepthStencilFormat = D3DFMT_D16
+	                EndIf
+	            Else
+	                pp.AutoDepthStencilFormat = D3DFMT_D24X8
+	            EndIf
+	        Else
+	            pp.AutoDepthStencilFormat = D3DFMT_D32
+	        EndIf
+	    EndIf
+	EndIf
+	
 	Local cflags=D3DCREATE_FPU_PRESERVE
 	
 	'OK, try hardware vertex processing...
@@ -98,6 +141,14 @@ Function OpenD3DDevice( hwnd,width,height,depth,hertz,flags )
 	_d3dDevRefs:+1
 	
 	_autoRelease=New TList
+
+	'Occlusion Query
+	If Not _d3dOccQuery
+		If _d3ddev.CreateQuery(9,_d3dOccQuery)<0 '9 hardcoded for D3DQUERYTYPE_OCCLUSION
+			DebugLog "Cannot create Occlussion Query!"
+		EndIf
+	EndIf
+	If _d3dOccQuery _d3dOccQuery.Issue(2) 'D3DISSUE_BEGIN
 	
 	Return True
 End Function
@@ -111,6 +162,9 @@ Function CloseD3DDevice()
 		Next
 		_autoRelease=Null
 
+		If _d3dOccQuery _d3dOccQuery.Release_
+		_d3dOccQuery = Null
+
 		_d3dDev.Release_
 		_d3dDev=Null
 		_presentParams=Null
@@ -119,15 +173,23 @@ End Function
 
 Function ResetD3DDevice()
 	If _graphics _graphics.OnDeviceLost()
+	If _d3dOccQuery _d3dOccQuery.Release_
 
 	If _d3dDev.Reset( _presentParams ) < 0
 		Throw "_d3dDev.Reset failed"
 	EndIf
-	
-	If _graphics _graphics.OnDeviceReset()	
+
+	If _graphics _graphics.OnDeviceReset()
+	If _d3ddev.CreateQuery(9,_d3dOccQuery)<0
+		DebugLog "Cannot create Occlussion Query!"
+	EndIf
+	If _d3dOccQuery _d3dOccQuery.Issue(2) 'D3DISSUE_BEGIN
+		
 End Function
 
 Public
+
+Global UseDX9RenderLagFix:Int = 0
 
 Type TD3D9DeviceStateCallback
 	Field _fnCallback(obj:Object)
@@ -290,6 +352,8 @@ Type TD3D9Graphics Extends TGraphics
 		EndIf
 		
 		Select _d3dDev.TestCooperativeLevel()
+		Case D3DERR_DRIVERINTERNALERROR
+			Throw "D3D Internal Error"
 		Case D3D_OK
 			If reset
 
@@ -370,7 +434,7 @@ Type TD3D9GraphicsDriver Extends TGraphicsDriver
 	Method Create:TD3D9GraphicsDriver()
 	
 		'create d3d9
-		If Not d3d9Lib Return
+		If Not d3d9Lib Return Null
 		
 		_d3d=Direct3DCreate9( 32 )
 		If Not _d3d Return Null
@@ -429,12 +493,30 @@ Type TD3D9GraphicsDriver Extends TGraphicsDriver
 		Return New TD3D9Graphics.Create( width,height,depth,hertz,flags )
 	End Method
 	
+	Method Graphics:TD3D9Graphics()
+		Return _graphics
+	End Method
+		
 	Method SetGraphics( g:TGraphics )
 		_graphics=TD3D9Graphics( g )
 	End Method
 	
 	Method Flip( sync )
-		Return _graphics.Flip( sync )
+		Local present:Int = _graphics.Flip(sync)
+		If UseDX9RenderLagFix Then
+			Local pixelsdrawn:Int
+			If _d3dOccQuery
+				_d3dOccQuery.Issue(1) 'D3DISSUE_END
+				
+				While _d3dOccQuery.GetData( Varptr pixelsdrawn,4,1 )=1 'D3DGETDATA_FLUSH
+					If  _d3dOccQuery.GetData( Varptr pixelsdrawn,4,1 )<0 Exit
+				Wend
+
+				_d3dOccQuery.Issue(2) 'D3DISSUE_BEGIN
+			EndIf
+		End If
+		
+		Return present
 	End Method
 	
 	Method GetDirect3D:IDirect3D9()

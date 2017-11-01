@@ -3,7 +3,7 @@ Strict
 Framework Brl.StandardIO
 Import "renderimage.bmx"
 
-SetGraphicsDriver d3d11Max2DDriver()
+SetGraphicsDriver D3D9Max2DDriver()
 Local gc:TGraphics = Graphics(800, 600, 32)
 Local rt:TRenderImage = CreateRenderImage(gc, 300, 150)
 
