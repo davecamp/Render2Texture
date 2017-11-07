@@ -22,9 +22,14 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 	Method CreateRenderTarget:TGLRenderImageFrame(width, height)
 		Local prevFBO:Int
 		Local prevTexture:Int
+		Local prevScissorTest:Int
+		
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, Varptr prevFBO)
 		glGetIntegerv(GL_TEXTURE_BINDING_2D,Varptr prevTexture)
+		glGetIntegerv(GL_SCISSOR_TEST, Varptr prevScissorTest)
 		
+		glDisable(GL_SCISSOR_TEST)
+
 		glGenTextures 1, Varptr name
 		glBindTexture GL_TEXTURE_2D,name
 		glTexImage2D GL_TEXTURE_2D,0,GL_RGBA8,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,Null
@@ -47,6 +52,7 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		uscale = 1.0 / width
 		vscale = 1.0 / height
 
+		If prevScissorTest glEnable(GL_SCISSOR_TEST)
 		glBindTexture GL_TEXTURE_2D,prevTexture
 		glBindFramebuffer GL_FRAMEBUFFER,prevFBO
 
