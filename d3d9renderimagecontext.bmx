@@ -69,9 +69,9 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 		ReleaseNow()
 	EndMethod
 
-	Method CreateRenderImage:TRenderImage(width:Int, height:Int)
-		Local renderimage:TD3D9RenderImage = New TD3D9RenderImage.CreateRenderImage(width,height)
-		renderimage.Init(_d3ddev)
+	Method CreateRenderImage:TRenderImage(width:Int, height:Int, UseImageFiltering:Int)
+		Local renderimage:TD3D9RenderImage = New TD3D9RenderImage.CreateRenderImage(width, height)
+		renderimage.Init(_d3ddev, UseImageFiltering)
 		_renderimages.AddLast(renderimage)
 
 		Return renderimage

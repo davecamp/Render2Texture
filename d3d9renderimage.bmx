@@ -142,12 +142,22 @@ Type TD3D9RenderImage Extends TRenderImage
 		TD3D9RenderImageFrame(frames[0]).ReleaseNow()
 	EndMethod
 
-	Method Init(d3ddev:IDirect3DDevice9)
+	Method Init(d3ddev:IDirect3DDevice9, UseImageFiltering:Int)
 		_d3ddev = d3ddev
 		_d3ddev.AddRef()
 
 		frames = New TD3D9RenderImageFrame[1]
 		frames[0] = New TD3D9RenderImageFrame.CreateRenderTarget(d3ddev, width, height)
+		If UseImageFiltering
+			TD3D9RenderImageFrame(frames[0])._magfilter=D3DTFG_LINEAR
+			TD3D9RenderImageFrame(frames[0])._minfilter=D3DTFG_LINEAR
+			TD3D9RenderImageFrame(frames[0])._mipfilter=D3DTFG_LINEAR
+		Else
+			TD3D9RenderImageFrame(frames[0])._magfilter=D3DTFG_POINT
+			TD3D9RenderImageFrame(frames[0])._minfilter=D3DTFG_POINT
+			TD3D9RenderImageFrame(frames[0])._mipfilter=D3DTFG_POINT
+		EndIf
+
 
 		'  clear the new render target surface
 		Local prevsurf:IDirect3DSurface9

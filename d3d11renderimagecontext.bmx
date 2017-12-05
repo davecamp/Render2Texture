@@ -11,6 +11,9 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 	Field _backbuffer:ID3D11RenderTargetView
 	Field _viewport:D3D11_VIEWPORT
 	Field _matrixbuffer:ID3D11Buffer
+	
+	Field _samplerPoint:ID3D11SamplerState
+	Field _samplerLinear:ID3D11SamplerState
 
 	Field _renderimages:TList
 
@@ -29,6 +32,14 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 		_viewport = Null
 		_gc = Null
 
+		If _samplerPoint
+			_samplerPoint.release_
+			_samplerPoint = Null
+		EndIf
+		If _samplerLinear
+			_samplerLinear.release_
+			_samplerLinear = Null
+		EndIf
 		If _backbuffer
 			_backbuffer.release_
 			_backbuffer = Null
@@ -64,6 +75,30 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 
 		_d3ddevcon.RSGetViewports(vpCount, _viewport)
 		_renderimages = New TList
+		
+		Local sd:D3D11_SAMPLER_DESC = New D3D11_SAMPLER_DESC
+		sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP
+		sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP
+		sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP
+		sd.MipLODBias = 0.0
+		sd.MaxAnisotropy = 1
+		sd.ComparisonFunc = D3D11_COMPARISON_GREATER_EQUAL
+		sd.BorderColor0 = 0.0
+		sd.BorderColor1 = 0.0
+		sd.BorderColor2 = 0.0
+		sd.BorderColor3 = 0.0
+		sd.MinLOD = 0.0
+		sd.MaxLOD = D3D11_FLOAT32_MAX
+		
+		sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR
+		If _d3ddev.CreateSamplerState(sd, _samplerLinear)<0
+			WriteStdout "Cannot create linear sampler state~nExiting.~n"
+		EndIf
+		
+		sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT
+		If _d3ddev.CreateSamplerState(sd, _samplerPoint)<0
+			WriteStdout "Cannot create point sampler state~nExiting.~n"
+		EndIf
 
 		Return Self
 	EndMethod
@@ -72,10 +107,15 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 		ReleaseNow()
 	EndMethod
 		
-	Method CreateRenderImage:TRenderImage(width:Int, height:Int)
-		Local renderimage:TD3D11RenderImage = New TD3D11RenderImage.CreateRenderImage(width,height)
-		renderimage.Init(_d3ddev, _d3ddevcon)
-
+	Method CreateRenderImage:TRenderImage(width:Int, height:Int, UseImageFiltering:Int)
+		Local renderimage:TD3D11RenderImage = New TD3D11RenderImage.CreateRenderImage(width, height)
+		
+		If UseImageFiltering
+			renderimage.Init(_d3ddev, _d3ddevcon, _samplerLinear)
+		Else
+			renderimage.Init(_d3ddev, _d3ddevcon, _samplerPoint)
+		EndIf
+	
 		_renderimages.AddLast(renderimage)
 
 		Return renderimage

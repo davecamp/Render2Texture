@@ -29,7 +29,7 @@ Function CreateRenderImageContext:TRenderImageContext(gc:TGraphics)
 	Return Null
 EndFunction
 
-Function CreateRenderImage:TRenderImage(gc:TGraphics, width:Int, height:Int)
+Function CreateRenderImage:TRenderImage(gc:TGraphics, width:Int, height:Int, UseLinearFlitering:Int = True)
 	Local max2d:TMax2DGraphics = TMax2DGraphics(gc)
 	If Not max2d Return ' only supports Max2D
 	
@@ -45,7 +45,7 @@ Function CreateRenderImage:TRenderImage(gc:TGraphics, width:Int, height:Int)
 	Assert _ric <> Null, "The code for the current TGraphics instance doesn't exist yet for rendering to a texture, feel free to write one."
 	?
 
-	Return _ric.CreateRenderImage(width, height)
+	Return _ric.CreateRenderImage(width, height, UseLinearFlitering)
 EndFunction
 
 Function DestroyRenderImage(renderImage:TRenderImage)
@@ -74,6 +74,9 @@ Function CreatePixmapFromRenderImage:TPixmap(renderimage:TRenderImage)
 
 	Return _ric.CreatePixmapFromRenderImage(renderimage)
 EndFunction
+
+
+
 
 
 

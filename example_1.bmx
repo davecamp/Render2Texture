@@ -6,7 +6,7 @@ Import "renderimage.bmx"
 SetGraphicsDriver GLMax2DDriver()
 Local gc:TGraphics = Graphics(800, 600)
 
-Local rt:TRenderImage = CreateRenderImage(gc, 300, 150)
+Local rt:TRenderImage = CreateRenderImage(gc, 300, 150, False)
 Local r2:TRenderImage = CreateRenderImage(gc, 300, 150)
 
 SetClsColor 40, 80, 160
@@ -25,9 +25,10 @@ While Not KeyDown(KEY_ESCAPE)
 	SetRenderImage(Null)
 	Cls
 	SetColor 255,255,255
-	
+	SetScale 2,2
 	DrawImage(rt,MouseX(),MouseY())
 	
+	SetScale 1,1
 	SetRenderImage(r2)
 	DrawText "Render 2 texture: " + GetGraphicsDriver().ToString(), 0, 0
 	

@@ -8,7 +8,7 @@ Type TRenderimageContext
 	Method Destroy() Abstract
 	Method GraphicsContext:TGraphics() Abstract
 
-	Method CreateRenderImage:TRenderImage(width:Int, height:Int) Abstract
+	Method CreateRenderImage:TRenderImage(width:Int, height:Int, UseImageFiltering:Int) Abstract
 	Method DestroyRenderImage(renderImage:TRenderImage) Abstract
 	Method SetRenderImage(renderimage:TRenderImage) Abstract
 	Method CreatePixmapFromRenderImage:TPixmap(renderImage:TRenderImage) Abstract

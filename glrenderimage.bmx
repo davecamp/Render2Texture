@@ -19,7 +19,7 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		EndIf
 	EndMethod
 	
-	Method CreateRenderTarget:TGLRenderImageFrame(width, height)
+	Method CreateRenderTarget:TGLRenderImageFrame(width, height, UseImageFiltering:Int)
 		Local prevFBO:Int
 		Local prevTexture:Int
 		Local prevScissorTest:Int
@@ -34,11 +34,17 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		glBindTexture GL_TEXTURE_2D,name
 		glTexImage2D GL_TEXTURE_2D,0,GL_RGBA8,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,Null
 
+		If UseImageFiltering
+			glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR
+			glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR
+		Else
+			glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST
+			glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST
+		EndIf
+		
 		glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE
 		glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE
-		glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR
-		glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR
-
+		
 		glGenFramebuffers(1,Varptr _fbo)
 		glBindFramebuffer GL_FRAMEBUFFER,_fbo
 
@@ -82,7 +88,7 @@ EndType
 Type TGLRenderImage Extends TRenderImage
 	Field _matrix:Float[16]
 
-	Method CreateRenderImage:TGLRenderImage(width:Int ,height:Int)
+	Method CreateRenderImage:TGLRenderImage(width:Int, height:Int)
 		Self.width = width		' TImage.width
 		Self.height = height	' TImage.height
 
@@ -98,9 +104,9 @@ Type TGLRenderImage Extends TRenderImage
 		TGLRenderImageFrame(frames[0]).DestroyRenderTarget()
 	EndMethod
 	
-	Method Init()
+	Method Init(UseImageFiltering:Int)
 		frames = New TGLRenderImageFrame[1]
-		frames[0] = New TGLRenderImageFrame.CreateRenderTarget(width, height)
+		frames[0] = New TGLRenderImageFrame.CreateRenderTarget(width, height, UseImageFiltering)
 	EndMethod
 
 	Method Frame:TImageFrame(index=0)
