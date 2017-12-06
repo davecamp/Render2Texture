@@ -193,8 +193,8 @@ Type TD3D9RenderImage Extends TRenderImage
 		_d3ddev.GetTexture(0, pTexture)
 		
 		Local frame:TD3D9RenderImageFrame = TD3D9RenderImageFrame(frames[0])
-		If frame._texture = pTexture
-			_d3ddev.SetTexture(0, Null)
+		If frame._texture <> pTexture
+			_d3ddev.SetTexture(0, pTexture)
 		EndIf
 		
 		If pTexture pTexture.Release_
@@ -206,6 +206,17 @@ Type TD3D9RenderImage Extends TRenderImage
 	
 	Method ToPixmap:TPixmap()
 		Return TD3D9RenderImageFrame(frames[0]).ToPixmap(_d3ddev, width, height)
+	EndMethod
+	
+	Method SetViewport(x:Int, y:Int, width:Int, height:Int)
+		If x = 0 And y = 0 And width = Self.width And height = Self.height
+			_d3ddev.SetRenderState(D3DRS_SCISSORTESTENABLE, False)
+		Else
+			_d3ddev.SetRenderState(D3DRS_SCISSORTESTENABLE, True)
+			Local rect[] = [x , y, x + width, y + height]
+			_d3ddev.SetScissorRect(rect)
+		EndIf
+
 	EndMethod
 
 	Method OnDeviceLost()

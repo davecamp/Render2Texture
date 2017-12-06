@@ -23,7 +23,7 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		Local prevFBO:Int
 		Local prevTexture:Int
 		Local prevScissorTest:Int
-		
+
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, Varptr prevFBO)
 		glGetIntegerv(GL_TEXTURE_BINDING_2D,Varptr prevTexture)
 		glGetIntegerv(GL_SCISSOR_TEST, Varptr prevScissorTest)
@@ -124,6 +124,15 @@ Type TGLRenderImage Extends TRenderImage
 	
 	Method ToPixmap:TPixmap()
 		Return TGLRenderImageFrame(frames[0]).ToPixmap(width, height)
+	EndMethod
+	
+	Method SetViewport(x:Int, y:Int, width:Int, height)
+		If x = 0 And y = 0 And width = Self.width And height = Self.height
+			glDisable GL_SCISSOR_TEST
+		Else
+			glEnable GL_SCISSOR_TEST
+			glScissor x, y, width, height
+		EndIf
 	EndMethod
 EndType
 

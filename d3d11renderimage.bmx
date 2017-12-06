@@ -181,6 +181,10 @@ Type TD3D11RenderImage Extends TRenderImage
 	Method ToPixmap:TPixmap(d3ddev:ID3D11Device)
 		Return TD3D11RenderImageFrame(frames[0]).ToPixmap(d3ddev, _d3ddevcon)
 	EndMethod
+	
+	Method SetViewport(x:Int, y:Int, width:Int, height:Int)
+		_d3ddevcon.RSSetScissorRects(1, [x, y, x + width, y + height])
+	EndMethod
 EndType
 
 

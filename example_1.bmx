@@ -28,7 +28,7 @@ While Not KeyDown(KEY_ESCAPE)
 	SetScale 2,2
 	DrawImage(rt,MouseX(),MouseY())
 	
-	SetScale 1,1
+	'SetScale 1,1
 	SetRenderImage(r2)
 	DrawText "Render 2 texture: " + GetGraphicsDriver().ToString(), 0, 0
 	

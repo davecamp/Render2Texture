@@ -75,6 +75,15 @@ Function CreatePixmapFromRenderImage:TPixmap(renderimage:TRenderImage)
 	Return _ric.CreatePixmapFromRenderImage(renderimage)
 EndFunction
 
+Function SetRenderImageViewport(renderimage:TRenderimage, x:Int, y:Int, width:Int, height:Int)
+	' sanity check
+	?debug
+	Assert _ric <> Null, "No TRenderImage instances have been created"
+	?
+
+	renderimage.SetViewport(x, y, width, height)
+EndFunction
+
 
 
 
