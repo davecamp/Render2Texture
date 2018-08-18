@@ -1,6 +1,7 @@
 # Render2Texture
 A render to texture solution for the BlitzMax language
 
+To use the code you need all files ( except the d3d9graphics.bmx file as explained under the 'NOTES for D3D9 users' ) in the same folder as your source code and place an [Import "renderimage.bmx"] at the top of your code.
 
 # NOTES For D3D9 Users
 For d3d9 render-textures to persist during the device lost and reset state caused by alt-tab it was required to modify the d3d9graphics.bmx file to make way for texture management functionality.
