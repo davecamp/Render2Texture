@@ -1,4 +1,4 @@
-Strict
+	Strict
 
 Import BRL.D3D9Max2D
 Import "renderimageinterface.bmx"
@@ -46,24 +46,26 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 	EndMethod
 
 	Method OnDeviceReset(d3ddev:IDirect3DDevice9)
-		Local width:Int = _persistpixmap.width
-		Local height:Int = _persistpixmap.height
-
-		d3ddev.CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, _texture, Null)
+		d3ddev.CreateTexture(_persistpixmap.width, _persistpixmap.height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, _texture, Null)
 		If _texture _texture.GetSurfaceLevel(0, _surface)
 
+		FromPixmap(d3ddev, _persistpixmap)
+		_persistpixmap = Null
+	EndMethod
+	
+	Method FromPixmap(d3ddev:IDirect3DDevice9, pixmap:TPixmap)
 		' use a staging surface to copy the pixmap into
 		Local stage:IDirect3DSurface9
-		d3ddev.CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
+		d3ddev.CreateOffscreenPlainSurface(pixmap.width, pixmap.height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
 
 		Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
 		stage.LockRect(lockedrect, Null, 0)
 
 		' copy the pixel data across
-		For Local y:Int = 0 Until _persistpixmap.height
-			Local srcptr:Byte Ptr = _persistpixmap.pixels + y * _persistpixmap.pitch
+		For Local y:Int = 0 Until pixmap.height
+			Local srcptr:Byte Ptr = pixmap.pixels + y * pixmap.pitch
 			Local dstptr:Byte Ptr = lockedrect.pBits + y * lockedrect.Pitch
-			MemCopy dstptr, srcptr, _persistpixmap.width * 4
+			MemCopy dstptr, srcptr, pixmap.width * 4
 		Next
 		stage.UnlockRect()
 
@@ -72,7 +74,6 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 
 		' cleanup
 		stage.release_
-		_persistpixmap = Null
 	EndMethod
 	
 	Method ToPixmap:TPixmap(d3ddev:IDirect3DDevice9, width:Int, height:Int)
@@ -95,6 +96,8 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 				dstptr[0] = ((srcptr[0] & $ff) Shl 16) | ((srcptr[0] & $ff0000) Shr 16)| (srcptr[0] & $ff00) | (srcptr[0] & $ff000000)
 			Next
 		Next
+		
+		pixmap = ConvertPixmap(pixmap, PF_BGRA)
 		
 		' cleanup
 		stage.UnlockRect()
@@ -181,7 +184,28 @@ Type TD3D9RenderImage Extends TRenderImage
 		' cleanup
 		prevsurf.release_
 	EndMethod
+	
+	Method InitFromPixmap(d3ddev:IDirect3DDevice9, Pixmap:TPixmap, UseImageFiltering:Int)
+		_d3ddev = d3ddev
+		_d3ddev.AddRef()
 
+		Pixmap = ConvertPixmap(pixmap, PF_BGRA)
+
+		frames = New TD3D9RenderImageFrame[1]
+		frames[0] = New TD3D9RenderImageFrame.CreateRenderTarget(d3ddev, width, height)
+		If UseImageFiltering
+			TD3D9RenderImageFrame(frames[0])._magfilter=D3DTFG_LINEAR
+			TD3D9RenderImageFrame(frames[0])._minfilter=D3DTFG_LINEAR
+			TD3D9RenderImageFrame(frames[0])._mipfilter=D3DTFG_LINEAR
+		Else
+			TD3D9RenderImageFrame(frames[0])._magfilter=D3DTFG_POINT
+			TD3D9RenderImageFrame(frames[0])._minfilter=D3DTFG_POINT
+			TD3D9RenderImageFrame(frames[0])._mipfilter=D3DTFG_POINT
+		EndIf
+
+		TD3D9RenderImageFrame(frames[0]).FromPixmap(d3ddev, Pixmap)
+	EndMethod
+	
 	Method Frame:TImageFrame(index=0)
 		If Not frames Return Null
 		If Not frames[0] Return Null

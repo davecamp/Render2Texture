@@ -53,7 +53,13 @@ Type TGLRenderImageContext Extends TRenderImageContext
 
 	Method CreateRenderImage:TRenderImage(width:Int, height:Int, UseImageFiltering:Int)
 		Local renderimage:TGLRenderImage = New TGLRenderImage.CreateRenderImage(width, height)
-		renderimage.Init(UseImageFiltering)
+		renderimage.Init(UseImageFiltering, Null)
+		Return  renderimage
+	EndMethod
+	
+	Method CreateRenderImageFromPixmap:TRenderImage(pixmap:TPixmap, UseImageFiltering:Int)
+		Local renderimage:TGLRenderImage = New TGLRenderImage.CreateRenderImage(pixmap.width, pixmap.height)
+		renderimage.Init(UseImageFiltering, pixmap)
 		Return  renderimage
 	EndMethod
 	

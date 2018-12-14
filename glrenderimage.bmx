@@ -19,20 +19,14 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		EndIf
 	EndMethod
 	
-	Method CreateRenderTarget:TGLRenderImageFrame(width, height, UseImageFiltering:Int)
-		Local prevFBO:Int
-		Local prevTexture:Int
-		Local prevScissorTest:Int
-
-		glGetIntegerv(GL_FRAMEBUFFER_BINDING, Varptr prevFBO)
-		glGetIntegerv(GL_TEXTURE_BINDING_2D,Varptr prevTexture)
-		glGetIntegerv(GL_SCISSOR_TEST, Varptr prevScissorTest)
+	Method CreateRenderTarget:TGLRenderImageFrame(width, height, UseImageFiltering:Int, pixmap:TPixmap)
+		pixmap = ConvertPixmap(pixmap, PF_RGBA)
 		
 		glDisable(GL_SCISSOR_TEST)
 
-		glGenTextures 1, Varptr name
-		glBindTexture GL_TEXTURE_2D,name
-		glTexImage2D GL_TEXTURE_2D,0,GL_RGBA8,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,Null
+		glGenTextures(1, Varptr name)
+		glBindTexture(GL_TEXTURE_2D, name)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixmap.pixels)
 
 		If UseImageFiltering
 			glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR
@@ -51,16 +45,14 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 		glBindTexture GL_TEXTURE_2D,name
 		glFramebufferTexture2D GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,name,0
 
-		' set and clear to a default colour
-		glClearColor 0, 0, 0, 0
-		glClear(GL_COLOR_BUFFER_BIT)
+		If Not pixmap
+			' set and clear to a default colour
+			glClearColor 0, 0, 0, 0
+			glClear(GL_COLOR_BUFFER_BIT)
+		EndIf
 
 		uscale = 1.0 / width
 		vscale = 1.0 / height
-
-		If prevScissorTest glEnable(GL_SCISSOR_TEST)
-		glBindTexture GL_TEXTURE_2D,prevTexture
-		glBindFramebuffer GL_FRAMEBUFFER,prevFBO
 
 		Return Self
 	EndMethod
@@ -104,9 +96,21 @@ Type TGLRenderImage Extends TRenderImage
 		TGLRenderImageFrame(frames[0]).DestroyRenderTarget()
 	EndMethod
 	
-	Method Init(UseImageFiltering:Int)
+	Method Init(UseImageFiltering:Int, pixmap:TPixmap)
+		Local prevFBO:Int
+		Local prevTexture:Int
+		Local prevScissorTest:Int
+
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, Varptr prevFBO)
+		glGetIntegerv(GL_TEXTURE_BINDING_2D,Varptr prevTexture)
+		glGetIntegerv(GL_SCISSOR_TEST, Varptr prevScissorTest)
+		
 		frames = New TGLRenderImageFrame[1]
-		frames[0] = New TGLRenderImageFrame.CreateRenderTarget(width, height, UseImageFiltering)
+		frames[0] = New TGLRenderImageFrame.CreateRenderTarget(width, height, UseImageFiltering, pixmap)
+		
+		If prevScissorTest glEnable(GL_SCISSOR_TEST)
+		glBindTexture GL_TEXTURE_2D,prevTexture
+		glBindFramebuffer GL_FRAMEBUFFER,prevFBO
 	EndMethod
 
 	Method Frame:TImageFrame(index=0)

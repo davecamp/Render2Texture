@@ -111,14 +111,29 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 		Local renderimage:TD3D11RenderImage = New TD3D11RenderImage.CreateRenderImage(width, height)
 		
 		If UseImageFiltering
-			renderimage.Init(_d3ddev, _d3ddevcon, _samplerLinear)
+			renderimage.Init(_d3ddev, _d3ddevcon, _samplerLinear, Null)
 		Else
-			renderimage.Init(_d3ddev, _d3ddevcon, _samplerPoint)
+			renderimage.Init(_d3ddev, _d3ddevcon, _samplerPoint, Null)
 		EndIf
 	
 		_renderimages.AddLast(renderimage)
 
 		Return renderimage
+	EndMethod
+	
+	Method CreateRenderImageFromPixmap:TRenderImage(pixmap:TPixmap, UseImageFiltering:Int)
+		Local renderimage:TD3D11RenderImage = New TD3D11RenderImage.CreateRenderImage(pixmap.width, pixmap.height)
+		
+		If UseImageFiltering
+			renderimage.Init(_d3ddev, _d3ddevcon, _samplerLinear, pixmap)
+		Else
+			renderimage.Init(_d3ddev, _d3ddevcon, _samplerPoint, pixmap)
+		EndIf
+	
+		_renderimages.AddLast(renderimage)
+
+		Return renderimage
+
 	EndMethod
 	
 	Method DestroyRenderImage(renderImage:TRenderImage)

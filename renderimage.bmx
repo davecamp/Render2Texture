@@ -84,6 +84,26 @@ Function SetRenderImageViewport(renderimage:TRenderimage, x:Int, y:Int, width:In
 	renderimage.SetViewport(x, y, width, height)
 EndFunction
 
+Function CreateRenderImageFromPixmap:TRenderImage(gc:TGraphics, Pixmap:TPixmap, UseLinearFlitering:Int = True)
+	Local max2d:TMax2DGraphics = TMax2DGraphics(gc)
+	If Not max2d Return ' only supports Max2D
+	
+	If _ric And _ric.GraphicsContext() <> max2d._graphics
+		_ric.Destroy()
+		_ric = Null
+	EndIf
+	
+	If Not _ric	_ric = CreateRenderImageContext(gc)
+	
+	'sanity check
+	?debug
+	Assert _ric <> Null, "The code for the current TGraphics instance doesn't exist yet for rendering to a texture, feel free to write one."
+	Assert Pixmap <> Null, "Invalid pixmap"
+	Assert Pixmap.Width <> 0 And Pixmap.Height <> 0, "Invalid pixmap"
+	?
+
+	Return _ric.CreateRenderImageFromPixmap(Pixmap, UseLinearFlitering)
+EndFunction
 
 
 

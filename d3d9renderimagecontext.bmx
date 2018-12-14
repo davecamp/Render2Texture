@@ -77,6 +77,14 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 		Return renderimage
 	EndMethod
 	
+	Method CreateRenderImageFromPixmap:TRenderImage(pixmap:TPixmap, UseImageFiltering:Int)
+		Local renderimage:TD3D9RenderImage = New TD3D9RenderImage.CreateRenderImage(pixmap.Width, pixmap.Height)
+		renderimage.InitFromPixmap(_d3ddev, pixmap, UseImageFiltering)
+		_renderimages.AddLast(renderimage)
+
+		Return renderimage
+	EndMethod
+	
 	Method DestroyRenderImage(renderImage:TRenderImage)
 		renderImage.DestroyRenderImage()
 		_renderimages.Remove(renderImage)

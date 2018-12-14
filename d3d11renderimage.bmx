@@ -23,7 +23,7 @@ Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 		EndIf
 	EndMethod
 	
-	Method CreateRenderTarget:TD3D11RenderImageFrame( d3ddev:ID3D11Device, width, height, sampler:ID3D11SamplerState)		
+	Method CreateRenderTarget:TD3D11RenderImageFrame( d3ddev:ID3D11Device, width, height, sampler:ID3D11SamplerState, pixmap:TPixmap)		
 		If Not _sampler _sampler = sampler
 	
 		'create texture
@@ -38,7 +38,15 @@ Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 		desc.Usage = D3D11_USAGE_DEFAULT
 		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET
 
-		If d3ddev.CreateTexture2D(desc,Null,_tex2D) < 0
+		Local data:D3D11_SUBRESOURCE_DATA
+		If pixmap
+			data = New D3D11_SUBRESOURCE_DATA
+			data.pSysMem = pixmap.pixels
+			data.SysMemPitch = pixmap.pitch
+			data.SysMemSlicePitch = pixmap.capacity
+		EndIf
+		
+		If d3ddev.CreateTexture2D(desc, data, _tex2D) < 0
 			WriteStdout("Cannot create texture~n")
 			Return
 		EndIf
@@ -136,7 +144,7 @@ Type TD3D11RenderImage Extends TRenderImage
 		TD3D11RenderImageFrame(frames[0]).DestroyRenderTarget()
 	EndMethod
 
-	Method Init(d3ddev:ID3D11Device, d3ddevcon:ID3D11DeviceContext, sampler:ID3D11SamplerState)
+	Method Init(d3ddev:ID3D11Device, d3ddevcon:ID3D11DeviceContext, sampler:ID3D11SamplerState, pixmap:TPixmap)
 		_d3ddevcon = d3ddevcon
 
 		Local desc:D3D11_BUFFER_DESC = New D3D11_BUFFER_DESC
@@ -150,10 +158,10 @@ Type TD3D11RenderImage Extends TRenderImage
 		If d3ddev.CreateBuffer(desc, data, _matrixbuffer) < 0 Throw "TD3D11RenderImage:Init cannot create matrix buffer"
 
 		frames=New TD3D11RenderImageFrame[1]
-		frames[0] = New TD3D11RenderImageFrame.CreateRenderTarget(d3ddev, width, height, sampler)
+		frames[0] = New TD3D11RenderImageFrame.CreateRenderTarget(d3ddev, width, height, sampler, pixmap)
 
 		' clear
-		_d3ddevcon.ClearRenderTargetView(TD3D11RenderImageFrame(frames[0])._rtv, [0.0, 0.0, 0.0, 0.0])
+		If Not pixmap _d3ddevcon.ClearRenderTargetView(TD3D11RenderImageFrame(frames[0])._rtv, [0.0, 0.0, 0.0, 0.0])
 	EndMethod
 
 	Method Frame:TImageFrame(index=0)
