@@ -44,11 +44,16 @@ Type TD3D11RenderImageFrame Extends TD3D11ImageFrame
 			data.pSysMem = pixmap.pixels
 			data.SysMemPitch = pixmap.pitch
 			data.SysMemSlicePitch = pixmap.capacity
-		EndIf
-		
-		If d3ddev.CreateTexture2D(desc, data, _tex2D) < 0
-			WriteStdout("Cannot create texture~n")
-			Return
+			
+			If d3ddev.CreateTexture2D(desc, data, _tex2D) < 0
+				WriteStdout("Cannot create texture~n")
+				Return
+			EndIf
+		Else
+			If d3ddev.CreateTexture2D(desc, Null, _tex2D) < 0
+				WriteStdout("Cannot create texture~n")
+				Return
+			EndIf
 		EndIf
 		
 		'Setup for shader
@@ -156,7 +161,7 @@ Type TD3D11RenderImage Extends TRenderImage
 		data.pSysMem = _matrix
 
 		If d3ddev.CreateBuffer(desc, data, _matrixbuffer) < 0 Throw "TD3D11RenderImage:Init cannot create matrix buffer"
-
+DebugStop
 		frames=New TD3D11RenderImageFrame[1]
 		frames[0] = New TD3D11RenderImageFrame.CreateRenderTarget(d3ddev, width, height, sampler, pixmap)
 

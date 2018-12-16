@@ -20,13 +20,17 @@ Type TGLRenderImageFrame Extends TGLImageFrame
 	EndMethod
 	
 	Method CreateRenderTarget:TGLRenderImageFrame(width, height, UseImageFiltering:Int, pixmap:TPixmap)
-		pixmap = ConvertPixmap(pixmap, PF_RGBA)
+		If pixmap pixmap = ConvertPixmap(pixmap, PF_RGBA)
 		
 		glDisable(GL_SCISSOR_TEST)
 
 		glGenTextures(1, Varptr name)
 		glBindTexture(GL_TEXTURE_2D, name)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixmap.pixels)
+		If pixmap
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixmap.pixels)
+		Else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Null)
+		EndIf
 
 		If UseImageFiltering
 			glTexParameteri GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR
