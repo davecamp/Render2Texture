@@ -129,7 +129,7 @@ Type TD3D11RenderImage Extends TRenderImage
 	EndMethod
 
 	Method CreateRenderImage:TD3D11RenderImage(width:Int ,height:Int)
-		Self.width=width	' TImage.width
+		Self.width=width		' TImage.width
 		Self.height=height	' TImage.height
 
 		_matrix = [ 2.0/width,0.0,0.0,-1-(1.0/width),..

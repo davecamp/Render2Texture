@@ -58,8 +58,8 @@ Type TD3D11RenderImageContext Extends TRenderImageContext
 		EndIf
 	EndMethod
 
-	Method Create:TD3D11RenderimageContext(context:TGraphics)
-		_gc = TD3D11Graphics(context)
+	Method Create:TD3D11RenderimageContext(max2d:TMax2DGraphics)
+		_gc = TD3D11Graphics(max2d._graphics)
 
 		_d3ddev = _gc.GetDirect3DDevice()
 		_d3ddev.AddRef()

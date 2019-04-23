@@ -4,7 +4,7 @@ Strict
 Import "renderimageinterface.bmx"
 
 Type TRenderimageContext
-	Method Create:TRenderimageContext(context:TGraphics) Abstract
+	Method Create:TRenderimageContext(context:TMax2DGraphics) Abstract
 	Method Destroy() Abstract
 	Method GraphicsContext:TGraphics() Abstract
 
@@ -14,3 +14,5 @@ Type TRenderimageContext
 	Method CreatePixmapFromRenderImage:TPixmap(renderImage:TRenderImage) Abstract
 	Method CreateRenderImageFromPixmap:TRenderImage(pixmap:TPixmap, UseImageFiltering:Int) Abstract
 EndType
+
+Global CreateRenderImageContextFromGC:TRenderImageContext(Max2DContext:TMax2DGraphics)

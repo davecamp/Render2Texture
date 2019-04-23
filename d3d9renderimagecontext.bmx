@@ -38,8 +38,8 @@ Type TD3D9RenderImageContext Extends TRenderImageContext
 		EndIf
 	EndMethod
 
-	Method Create:TD3D9RenderimageContext(context:TGraphics)
-		Local gc:TD3D9Graphics = TD3D9Graphics(context)
+	Method Create:TD3D9RenderimageContext(max2d:TMax2DGraphics)
+		Local gc:TD3D9Graphics = TD3D9Graphics(max2d._graphics)
 		_gc = gc
 
 		gc.AddDeviceLostCallback(fnOnDeviceLost, Self)

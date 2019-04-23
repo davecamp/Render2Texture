@@ -1,11 +1,18 @@
 
 Strict
-Framework Brl.StandardIO
+?bmxng
+Framework sdl.sdl
+Import sdl.gl2sdlmax2d
+?
+Import brl.random
 Import "renderimage.bmx"
 
-SetGraphicsDriver GLMax2DDriver()
-Local gc:TGraphics = Graphics(800, 600)
+?bmxng
+SetGraphicsDriver GL2Max2DDriver()
+?
 
+Local gc:TGraphics = Graphics(800, 600)
+DebugStop
 Local rt:TRenderImage = CreateRenderImage(gc, 300, 150, False)
 Local r2:TRenderImage = CreateRenderImage(gc, 300, 150)
 
@@ -38,3 +45,5 @@ While Not KeyDown(KEY_ESCAPE)
 	Flip
 Wend
 End
+
+     

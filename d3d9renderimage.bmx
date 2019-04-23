@@ -1,4 +1,4 @@
-	Strict
+Strict
 
 Import BRL.D3D9Max2D
 Import "renderimageinterface.bmx"
@@ -165,10 +165,12 @@ Type TD3D9RenderImage Extends TRenderImage
 		'  clear the new render target surface
 		Local prevsurf:IDirect3DSurface9
 		Local prevmatrix:Float[16]
-		Local prevviewport:D3DVIEWPORT9 = New D3DVIEWPORT9
+		
 		' get previous
 		d3ddev.GetRenderTarget(0, prevsurf)
 		d3ddev.GetTransform(D3DTS_PROJECTION, prevmatrix)
+
+		Local prevviewport:D3DVIEWPORT9 = New D3DVIEWPORT9
 		d3ddev.GetViewport(prevviewport)
 
 		' set and clear
