@@ -21,3 +21,6 @@ Make sure to use DestroyRenderImage. There is a reference held for each renderim
 # D3D11 build issues
 if you get an error 'srs.d3d11max2d' interface not found when building on Windows OSs:
 You'll need Windows7 on newer for Direct3D11 support. You can download the srs.mod moodule from 'https://github.com/davecamp/srs.mod'
+
+# BlitzMax NG
+Example 8 shows how to use the code with the GL2SDLGraphic driver that can be used with BlitzMax NG. This *may* get more enhancements as time progresses.
