@@ -1,4 +1,4 @@
-Strict
+	Strict
 
 Import BRL.D3D9Max2D
 Import "renderimageinterface.bmx"
@@ -46,10 +46,13 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 	EndMethod
 
 	Method OnDeviceReset(d3ddev:IDirect3DDevice9)
-		d3ddev.CreateTexture(_persistpixmap.width, _persistpixmap.height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, _texture, Null)
-		If _texture _texture.GetSurfaceLevel(0, _surface)
+		If(_persistpixmap)
+			d3ddev.CreateTexture(_persistpixmap.width, _persistpixmap.height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, _texture, Null)
+			If _texture _texture.GetSurfaceLevel(0, _surface)
 
-		FromPixmap(d3ddev, _persistpixmap)
+			FromPixmap(d3ddev, _persistpixmap)
+		EndIf
+		
 		_persistpixmap = Null
 	EndMethod
 	
@@ -83,19 +86,19 @@ Type TD3D9RenderImageFrame Extends TD3D9ImageFrame
 		Local stage:IDirect3DSurface9
 		d3ddev.CreateOffscreenPlainSurface(width, height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, stage, Null)
 
-		If d3ddev.GetRenderTargetData(_surface, stage) < 0 Throw "TD3D9RenderImageFrame:ToPixmap:GetRenderTargetData failed"
-
-		' copy the pixel data across
-		Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
-		If stage.LockRect(lockedrect, Null, 0) < 0 Throw "TD3D9RenderImageFrame:ToPixmap:LockRect failed"
-
-		For Local y:Int = 0 Until pixmap.height
-			For Local x:Int = 0 Until pixmap.width
-				Local srcptr:Int Ptr = Int Ptr (lockedrect.pBits + x * 4 + y * lockedrect.Pitch)
-				Local dstptr:Int Ptr = Int Ptr (pixmap.pixels + x * 4 + y * pixmap.pitch)
-				dstptr[0] = ((srcptr[0] & $ff) Shl 16) | ((srcptr[0] & $ff0000) Shr 16)| (srcptr[0] & $ff00) | (srcptr[0] & $ff000000)
+		If d3ddev.GetRenderTargetData(_surface, stage) = 0 ' if succeeded
+			' copy the pixel data across
+			Local lockedrect:D3DLOCKED_RECT = New D3DLOCKED_RECT
+			If stage.LockRect(lockedrect, Null, 0) < 0 Throw "TD3D9RenderImageFrame:ToPixmap:LockRect failed"
+	
+			For Local y:Int = 0 Until pixmap.height
+				For Local x:Int = 0 Until pixmap.width
+					Local srcptr:Int Ptr = Int Ptr (lockedrect.pBits + x * 4 + y * lockedrect.Pitch)
+					Local dstptr:Int Ptr = Int Ptr (pixmap.pixels + x * 4 + y * pixmap.pitch)
+					dstptr[0] = ((srcptr[0] & $ff) Shl 16) | ((srcptr[0] & $ff0000) Shr 16)| (srcptr[0] & $ff00) | (srcptr[0] & $ff000000)
+				Next
 			Next
-		Next
+		EndIf
 		
 		pixmap = ConvertPixmap(pixmap, PF_BGRA)
 		
@@ -165,12 +168,10 @@ Type TD3D9RenderImage Extends TRenderImage
 		'  clear the new render target surface
 		Local prevsurf:IDirect3DSurface9
 		Local prevmatrix:Float[16]
-		
+		Local prevviewport:D3DVIEWPORT9 = New D3DVIEWPORT9
 		' get previous
 		d3ddev.GetRenderTarget(0, prevsurf)
 		d3ddev.GetTransform(D3DTS_PROJECTION, prevmatrix)
-
-		Local prevviewport:D3DVIEWPORT9 = New D3DVIEWPORT9
 		d3ddev.GetViewport(prevviewport)
 
 		' set and clear
@@ -235,6 +236,18 @@ Type TD3D9RenderImage Extends TRenderImage
 	EndMethod
 	
 	Method SetViewport(x:Int, y:Int, width:Int, height:Int)
+		If width = 0
+			width = Self.width
+			height = Self.height
+		End If
+		
+		If x + width > Self.width
+			width:-(x + width - Self.width)
+		EndIf
+		If y + height > Self.height
+			height:-(y + height - Self.height)
+		EndIf
+	
 		If x = 0 And y = 0 And width = Self.width And height = Self.height
 			_d3ddev.SetRenderState(D3DRS_SCISSORTESTENABLE, False)
 		Else
@@ -242,7 +255,6 @@ Type TD3D9RenderImage Extends TRenderImage
 			Local rect[] = [x , y, x + width, y + height]
 			_d3ddev.SetScissorRect(rect)
 		EndIf
-
 	EndMethod
 
 	Method OnDeviceLost()
@@ -253,8 +265,6 @@ Type TD3D9RenderImage Extends TRenderImage
 		TD3D9RenderImageFrame(frames[0]).OnDeviceReset(_d3ddev)
 	EndMethod
 EndType
-
-
 
 
 
